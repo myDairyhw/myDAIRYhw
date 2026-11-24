@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#17162b" />
+    <meta name="description" content="מרחב אישי ללימודי תכנות: מערכת שבועית, אתגרי קוד וסשנים של פוקוס." />
+    <title>שב — מרחב הלמידה שלך</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./config.js"></script>
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="שב - עמוד הבית">
+          <span class="brand-mark">שב</span>
+          <span class="brand-copy"><strong>שב</strong><small>מרחב הלמידה שלך</small></span>
+        </a>
+        <div class="topbar-actions">
+          <span id="mode-badge" class="mode-badge" hidden></span>
+          <button id="settings-button" class="icon-button" type="button" aria-label="הגדרות" title="הגדרות" hidden>⚙</button>
+          <button id="signout-button" class="text-button" type="button" hidden>יציאה</button>
+          <button id="login-button" class="button button-outline button-small" type="button">כניסה</button>
+        </div>
+      </header>
+
+      <main>
+        <section id="welcome-view" class="welcome-view">
+          <div class="hero-copy">
+            <span class="eyebrow"><span class="sparkle">✳</span> הסדר הקטן שעושה מקום בראש</span>
+            <h1>לימודי התכנות,<br /><span>בראש שקט.</span></h1>
+            <p>מסדרות שיעורים, תרגולים והגשות בלוח שבועי אישי, ובוחרות בדיוק מתי לקבל תזכורת.</p>
+            <div class="hero-actions">
+              <button id="signup-button" class="button button-primary" type="button">מתחילות עכשיו <span aria-hidden="true">←</span></button>
+              <button id="demo-button" class="button button-quiet" type="button">לראות איך זה עובד</button>
+            </div>
+            <div class="hero-footnote"><span class="online-dot"></span> הלוח האישי שלכן. פשוט, נעים ובמקום אחד.</div>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+            <div class="floating-note note-top"><span class="note-icon lavender">✦</span><span><strong>הכול במקום אחד</strong><small>התוכנית השבועית שלך</small></span></div>
+            <div class="hero-card">
+              <div class="hero-card-top"><span>יום שלישי, 12 במאי</span><span class="tiny-dots">•••</span></div>
+              <h3>היום שלך, בקצב שלך</h3>
+              <div class="preview-task"><span class="check-circle checked">✓</span><span><strong>לתרגל לולאות ב‑Python</strong><small>09:00 · תרגול</small></span><span class="task-tag done-tag">בוצע</span></div>
+              <div class="preview-task"><span class="check-circle"></span><span><strong>לסיים תרגיל JavaScript</strong><small>17:30 · הגשה</small></span><span class="task-tag">היום</span></div>
+              <div class="preview-task"><span class="check-circle"></span><span><strong>לעבור על שיעור SQL</strong><small>20:00 · חזרה</small></span><span class="task-tag tomorrow-tag">מחר</span></div>
+              <div class="mini-progress"><span></span></div><div class="progress-label">משימה אחת הושלמה <b>מתוך 3</b></div>
+            </div>
+            <div class="floating-note note-bottom"><span class="note-icon peach">✉</span><span><strong>תזכורת בזמן שלך</strong><small>נשלח למייל, בדיוק כשנוח</small></span><span class="note-check">✓</span></div>
+            <span class="decor decor-star">✳</span><span class="decor decor-dot">·</span>
+          </div>
+        </section>
+
+        <section id="dashboard-view" class="dashboard-view" hidden>
+          <div class="dashboard-heading">
+            <div><span class="eyebrow">המרחב האישי ללימודי תכנות</span><h1 id="greeting">היי, איזה כיף שאת כאן <span>✦</span></h1><p>שיעורים, תרגולים והגשות — מסודרים בשבוע שמתאים לך.</p></div>
+            <button id="add-task-button" class="button button-primary" type="button"><span>＋</span> משימה חדשה</button>
+          </div>
+          <section class="learning-hero">
+            <div class="learning-hero-copy">
+              <span class="hero-kicker"><span class="hero-kicker-dot"></span> הסטודיו שלך לקוד</span>
+              <h2>כל שורת קוד<br /><span>מקדמת אותך.</span></h2>
+              <p>בקצב שלך, בדרך שלך. בואי לבחור את הצעד הבא.</p>
+            </div>
+            <div class="learning-hero-stats">
+              <div class="hero-stat"><span class="stat-icon">⌘</span><strong id="scheduled-count">0</strong><small>פריטים בלוח</small></div>
+              <div class="hero-stat"><span class="stat-icon stat-icon-lime">✳</span><strong id="planned-days-count">0/7</strong><small>ימים בתכנון</small></div>
+              <button id="hero-add-task" class="hero-cta" type="button"><span>＋</span> תכנון חדש</button>
+            </div>
+            <span class="hero-spark hero-spark-one">✳</span><span class="hero-spark hero-spark-two">✦</span>
+            <div class="hero-code-art" aria-hidden="true"><span>&lt;/&gt;</span><i></i><i></i><i></i></div>
+          </section>
+          <section class="learning-tools" aria-label="כלי למידה">
+            <article class="challenge-card">
+              <div class="tool-topline"><span class="tool-label"><span class="tool-label-icon">✳</span> אתגר קוד קצר</span><span class="challenge-chip">Python · קלילה</span></div>
+              <h2>מה יודפס בלולאה?</h2>
+              <p>קחי רגע לחשוב לפני שאת מגלה את התשובה.</p>
+              <pre class="code-snippet" dir="ltr"><code><span class="code-purple">for</span> n <span class="code-purple">in</span> <span class="code-yellow">range</span>(<span class="code-green">1</span>, <span class="code-green">4</span>):
+    <span class="code-blue">print</span>(n ** <span class="code-green">2</span>)</code></pre>
+              <div id="challenge-answer" class="challenge-answer" hidden><strong>התשובה: 1, 4, 9</strong><p>הטווח מתחיל ב־1 ועוצר לפני 4. בכל סיבוב מדפיסים את המספר בריבוע.</p></div>
+              <div class="challenge-actions"><button id="reveal-challenge" class="challenge-reveal" type="button" aria-expanded="false">גלי את הפתרון <span>↙</span></button><button id="challenge-task-button" class="challenge-add" type="button">＋ ללוח שלי</button></div>
+            </article>
+            <article class="focus-card">
+              <div class="tool-topline"><span class="tool-label"><span class="tool-label-icon focus-label-icon">◷</span> פינת הפוקוס</span><span class="focus-live"><i></i> זמן לעצמך</span></div>
+              <div class="focus-content"><div><h2>25 דקות, משימה אחת.</h2><p>שימי את העולם על שקט ותני לעצמך להתרכז.</p></div><div class="focus-clock" aria-label="טיימר פוקוס"><span id="focus-display">25:00</span><small>דקות של פוקוס</small></div></div>
+              <div class="focus-controls"><button id="focus-toggle" class="focus-start" type="button">מתחילות פוקוס <span>→</span></button><button id="focus-reset" class="focus-reset" type="button" aria-label="איפוס טיימר" title="איפוס">↺</button></div>
+              <div class="focus-track"><span id="focus-progress"></span></div>
+            </article>
+          </section>
+          <div class="dashboard-grid">
+            <div class="schedule-column">
+              <section class="panel schedule-panel">
+              <div class="panel-heading"><div><h2>מערכת הקורסים שלי</h2><p>השיעורים והקורסים שלך, בנפרד מהמטלות</p></div><button id="edit-schedule-button" class="week-label schedule-edit-button" type="button">עריכת מערכת <span>✎</span></button></div>
+              <div class="week-scroll"><div id="week-grid" class="week-grid"></div></div>
+              <div id="empty-schedule" class="empty-state" hidden><span>✳</span><strong>עוד לא הוספת קורסים</strong><p>הגדירי את השיעורים שלך כדי לראות את המערכת השבועית.</p><button class="inline-link" type="button" data-action="schedule">+ הוספת קורסים</button></div>
+              </section>
+              <section class="panel tasks-panel">
+              <div class="panel-heading">
+                <div><h2>פרויקטים, הגשות ומבחנים</h2><p>רשימת המטלות שלך עם תאריך יעד ותזכורת</p></div>
+                <button id="tasks-add-task-button" class="button button-primary task-add-button" type="button"><span>＋</span> מטלה חדשה</button>
+              </div>
+              <div id="tasks-list" class="tasks-list"></div>
+              <div id="empty-tasks" class="empty-state" hidden><span>✦</span><strong>המקום פנוי לפרויקט הבא שלך</strong><p>הוסיפי הגשה, פרויקט או מבחן ונעזור לך לזכור את התאריך.</p><button class="inline-link" type="button" data-action="add-task">+ הוספת מטלה</button></div>
+              </section>
+            </div>
+            <aside class="side-column">
+              <section class="panel reminder-panel">
+                <div class="reminder-title"><span class="reminder-icon">✉</span><div><h2>תזכורות במייל</h2><p>השעות האישיות שלך, לפי הזמן המקומי</p></div></div>
+                <div class="reminder-setting"><span class="setting-icon today-icon">◷</span><span class="setting-copy"><strong>מה מחכה לי היום</strong><small>תזכורת למשימות של היום</small></span><label class="switch"><input id="remind-today" type="checkbox" /><span></span></label></div>
+                <div class="time-setting"><label for="remind-today-at">שעת התזכורת להיום</label><input id="remind-today-at" type="time" value="08:00" /></div>
+                <div class="reminder-setting"><span class="setting-icon tomorrow-icon">↗</span><span class="setting-copy"><strong>מבט קטן למחר</strong><small>תזכורת למשימות של מחר</small></span><label class="switch"><input id="remind-tomorrow" type="checkbox" /><span></span></label></div>
+                <div class="time-setting"><label for="remind-tomorrow-at">שעת התזכורת למחר</label><input id="remind-tomorrow-at" type="time" value="20:00" /></div>
+                <p id="reminder-status" class="reminder-status">השינויים נשמרים אוטומטית.</p>
+              </section>
+              <section class="tip-card"><span class="tip-sun">☼</span><div><span class="eyebrow">רגע קטן לעצמך</span><p>לא חייבים להספיק הכול. גם צעד קטן הוא התקדמות.</p></div></section>
+              <section id="email-card" class="email-card"><span class="email-illustration">✉</span><div><strong>התזכורות יגיעו לכאן</strong><span id="account-email"></span></div></section>
+            </aside>
+          </div>
+        </section>
+      </main>
+      <footer><span>שב</span><span>לומדות קוד, צעד אחד בכל פעם.</span><span>נבנה באהבה ✿</span></footer>
+    </div>
+
+    <dialog id="auth-dialog" class="modal">
+      <form method="dialog" class="modal-close-row"><button class="close-button" aria-label="סגירה" value="cancel">×</button></form>
+      <div class="modal-content">
+        <span class="modal-mark">שב</span>
+        <span class="eyebrow">נעים להכיר</span>
+        <h2 id="auth-title">פותחות חשבון</h2>
+        <p id="auth-subtitle">כמה פרטים קטנים, והלוח האישי שלך מוכן.</p>
+        <p id="auth-config-note" class="config-note" hidden>כרגע זה מצב הדגמה בלבד: החשבון והמשימות נשמרים בדפדפן הזה, ולא נשלחים מיילים. כדי להפעיל חשבונות אמיתיים, יש לחבר פרויקט Supabase.</p>
+        <form id="auth-form">
+          <label id="name-field" class="form-field">איך קוראים לך?<input id="auth-name" type="text" autocomplete="name" placeholder="השם שלך" /></label>
+          <label class="form-field">כתובת מייל<input id="auth-email" type="email" autocomplete="email" placeholder="name@example.com" required /></label>
+          <label class="form-field">סיסמה<input id="auth-password" type="password" autocomplete="new-password" placeholder="לפחות 6 תווים" minlength="6" required /></label>
+          <p id="auth-error" class="form-error" role="alert"></p>
+          <button id="auth-submit" class="button button-primary modal-submit" type="submit">יצירת חשבון</button>
+        </form>
+        <button id="auth-switch" class="inline-link auth-switch" type="button">כבר יש לך חשבון? כניסה</button>
+        <p class="privacy-note">הפרטים שלך פרטיים ונגישים רק לך.</p>
+      </div>
+    </dialog>
+
+    <dialog id="task-dialog" class="modal">
+      <form method="dialog" class="modal-close-row"><button class="close-button" aria-label="סגירה" value="cancel">×</button></form>
+      <div class="modal-content task-modal-content">
+        <span class="eyebrow">מוסיפות משהו טוב לשבוע</span>
+        <h2>משימה חדשה</h2>
+        <p>לא צריך לתכנן הכול. מתחילות ממשימה אחת.</p>
+        <form id="task-form">
+          <label class="form-field">מה צריך לעשות?<input id="task-title" type="text" maxlength="80" placeholder="למשל: להגיש פרויקט JavaScript" required /></label>
+          <label class="form-field">סוג המטלה<select id="task-category" required><option value="assignment">הגשה</option><option value="project">פרויקט</option><option value="exam">מבחן</option><option value="practice">תרגול</option></select></label>
+          <label class="form-field">תאריך הגשה / מועד<input id="task-due-date" type="date" required /></label>
+          <label class="form-field">שעת הגשה <span class="optional">(לא חובה)</span><input id="task-time" type="time" /></label>
+          <label class="form-field">הערה קטנה <span class="optional">(לא חובה)</span><textarea id="task-notes" maxlength="240" rows="2" placeholder="כל פרט שיעזור לך לזכור"></textarea></label>
+          <p id="task-error" class="form-error" role="alert"></p>
+          <button id="task-submit" class="button button-primary modal-submit" type="submit">שמירת המטלה</button>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog id="schedule-dialog" class="modal schedule-modal">
+      <form method="dialog" class="modal-close-row"><button class="close-button" aria-label="סגירה" value="cancel">×</button></form>
+      <div class="modal-content">
+        <span class="modal-mark">⌘</span>
+        <span class="eyebrow">בונות את השבוע שלך</span>
+        <h2>מה לומדות ומתי?</h2>
+        <p>הוסיפי שיעורים וקורסים. אפשר להוסיף כמה שיעורים לאותו יום.</p>
+        <form id="schedule-form">
+          <div class="course-editor-heading"><span>יום וקורס</span><span>שעות השיעור</span></div>
+          <div id="course-rows" class="course-rows"></div>
+          <button id="add-course-row" class="add-course-row" type="button">＋ הוספת שיעור למערכת</button>
+          <p id="schedule-error" class="form-error" role="alert"></p>
+          <button id="schedule-submit" class="button button-primary modal-submit" type="submit">שמירת המערכת והמשך</button>
+        </form>
+        <button id="skip-schedule" class="inline-link schedule-skip" type="button">אוסיף קורסים אחר כך</button>
+      </div>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
