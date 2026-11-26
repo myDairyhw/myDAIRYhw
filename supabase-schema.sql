@@ -4,6 +4,7 @@ create table if not exists public.profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   display_name text not null default '',
+  study_field text not null default 'לימודים כלליים',
   timezone text not null default 'Asia/Jerusalem',
   reminder_time time not null default '20:00',
   remind_today_at time,
@@ -26,6 +27,7 @@ alter table public.profiles alter column remind_today_at set not null;
 alter table public.profiles alter column remind_tomorrow_at set default '20:00';
 alter table public.profiles alter column remind_tomorrow_at set not null;
 alter table public.profiles add column if not exists schedule_setup_completed boolean not null default false;
+alter table public.profiles add column if not exists study_field text not null default 'לימודים כלליים';
 
 create table if not exists public.tasks (
   id uuid primary key default gen_random_uuid(),
@@ -110,11 +112,12 @@ security definer
 set search_path = ''
 as $$
 begin
-  insert into public.profiles (user_id, email, display_name)
+  insert into public.profiles (user_id, email, display_name, study_field)
   values (
     new.id,
     new.email,
-    coalesce(new.raw_user_meta_data ->> 'display_name', '')
+    coalesce(new.raw_user_meta_data ->> 'display_name', ''),
+    coalesce(nullif(new.raw_user_meta_data ->> 'study_field', ''), 'לימודים כלליים')
   )
   on conflict (user_id) do update set email = excluded.email;
   return new;

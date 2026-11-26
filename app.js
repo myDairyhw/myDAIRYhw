@@ -65,6 +65,7 @@
       if (saved && Array.isArray(saved.tasks) && saved.preferences) {
         return {
           ...saved,
+          studyField: saved.studyField || "לימודים כלליים",
           courses: Array.isArray(saved.courses) ? saved.courses : [],
           scheduleSetupComplete: Boolean(saved.scheduleSetupComplete),
           tasks: saved.tasks.map((task) => ({
@@ -86,6 +87,7 @@
     }
     return {
       name: "",
+      studyField: "לימודים כלליים",
       email: "",
       tasks: [],
       courses: [],
@@ -121,6 +123,8 @@
   function renderDashboard() {
     const displayName = state.name ? `, ${escapeHtml(state.name)}` : "";
     $("#greeting").innerHTML = `היי${displayName}, איזה כיף שאת כאן <span>✦</span>`;
+    $("#study-field-label").textContent = `הלימודים שלך: ${state.studyField || "לימודים כלליים"}`;
+    $("#study-field-description").textContent = `המרחב שלך ל${state.studyField || "לימודים כלליים"} — בקצב שלך, בדרך שלך.`;
     $("#account-email").textContent = state.email || "הגדרת התזכורות האישיות שלך";
     $("#remind-today").checked = Boolean(state.preferences.remindToday);
     $("#remind-tomorrow").checked = Boolean(state.preferences.remindTomorrow);
@@ -146,7 +150,7 @@
           <div class="course-chip">
             <strong>${escapeHtml(course.name)}</strong>
             <small>${escapeHtml(course.start)} – ${escapeHtml(course.end)}</small>
-          </div>`).join("") : '<span class="empty-day">＋</span>'}
+          </div>`).join("") : '<span class="empty-day">יום פנוי</span>'}
         </div>
       </article>`;
     }).join("");
@@ -193,7 +197,7 @@
   async function loadCloudData() {
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("display_name,email,timezone,remind_today_at,remind_tomorrow_at,remind_today,remind_tomorrow,schedule_setup_completed")
+      .select("display_name,study_field,email,timezone,remind_today_at,remind_tomorrow_at,remind_today,remind_tomorrow,schedule_setup_completed")
       .eq("user_id", user.id)
       .single();
     if (profileError) throw profileError;
@@ -214,6 +218,7 @@
     if (courseResult.error) throw courseResult.error;
     state = {
       name: profile.display_name || "",
+      studyField: profile.study_field || "לימודים כלליים",
       email: profile.email || user.email || "",
       scheduleSetupComplete: Boolean(profile.schedule_setup_completed),
       preferences: {
@@ -258,6 +263,7 @@
       console.error("Could not load the user's Supabase data.", error);
       state = {
         name: "",
+        studyField: "לימודים כלליים",
         email: user.email || "",
         tasks: [],
         courses: [],
@@ -281,8 +287,10 @@
     elements.authSubtitle.textContent = signup ? "כמה פרטים קטנים, והלוח האישי שלך מוכן." : "התחברי כדי לפתוח את הלוח האישי שלך.";
     elements.authSubmit.textContent = signup ? "יצירת חשבון" : "כניסה";
     elements.nameField.hidden = !signup;
+    $("#study-field-input-label").hidden = !signup;
     $("#auth-config-note").hidden = !isDemo;
     $("#auth-name").required = signup;
+    $("#auth-study-field").required = signup;
     $("#auth-password").autocomplete = signup ? "new-password" : "current-password";
     elements.authSwitch.textContent = signup ? "כבר יש לך חשבון? כניסה" : "חדשה כאן? יצירת חשבון";
     elements.authError.textContent = "";
@@ -316,7 +324,7 @@
     row.dataset.sessionId = course.id || "";
     row.innerHTML = `
       <select aria-label="יום בשבוע" data-course-day>${DAYS.map((day, index) => `<option value="${index}" ${Number(course.day) === index ? "selected" : ""}>${day.name}</option>`).join("")}</select>
-      <input type="text" maxlength="80" aria-label="שם הקורס" data-course-name placeholder="למשל: מבוא ל-Python" value="${escapeHtml(course.name || "")}" />
+      <input type="text" maxlength="80" aria-label="שם השיעור או המפגש" data-course-name placeholder="למשל: שיעור מבוא" value="${escapeHtml(course.name || "")}" />
       <input type="time" aria-label="שעת התחלה" data-course-start value="${escapeHtml(course.start || "")}" />
       <input type="time" aria-label="שעת סיום" data-course-end value="${escapeHtml(course.end || "")}" />
       <button class="remove-course-row" type="button" data-remove-course aria-label="הסרת שיעור">×</button>`;
@@ -407,11 +415,11 @@
     showToast("אפשר להגדיר או לערוך את מערכת הקורסים בכל שלב.");
   }
 
-  async function createAccount(email, password, name) {
+  async function createAccount(email, password, name, studyField) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { display_name: name } },
+      options: { data: { display_name: name, study_field: studyField } },
     });
     if (error) throw error;
     if (data.session) {
@@ -420,6 +428,7 @@
         user_id: user.id,
         email,
         display_name: name,
+        study_field: studyField,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jerusalem",
       });
       if (profileError) throw profileError;
@@ -438,10 +447,16 @@
     const email = $("#auth-email").value.trim();
     const password = $("#auth-password").value;
     const name = $("#auth-name").value.trim();
+    const studyField = $("#auth-study-field").value.trim();
+    if (authMode === "signup" && !studyField) {
+      elements.authError.textContent = "כתבי את תחום הלימודים שלך כדי שנוכל להתאים לך את המרחב.";
+      return;
+    }
     elements.authSubmit.disabled = true;
     try {
       if (isDemo) {
         state.name = authMode === "signup" ? name : state.name;
+        state.studyField = authMode === "signup" ? studyField : state.studyField || "לימודים כלליים";
         state.email = email;
         demoStarted = true;
         saveDemoState();
@@ -451,7 +466,7 @@
         return;
       }
       if (authMode === "signup") {
-        await createAccount(email, password, name);
+        await createAccount(email, password, name, studyField);
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -640,16 +655,16 @@
     state = loadDemoState();
     if (!state.tasks.length) {
       state.tasks = [
-        { id: crypto.randomUUID(), title: "להגיש תרגיל JavaScript", category: "assignment", notes: "לבדוק את מקרי הקצה", dueDate: dateForWeekday(2), time: "17:00" },
+        { id: crypto.randomUUID(), title: "להגיש את המטלה השבועית", category: "assignment", notes: "לחלק את העבודה לצעדים קטנים", dueDate: dateForWeekday(2), time: "17:00" },
         { id: crypto.randomUUID(), title: "להתקדם בפרויקט", category: "project", notes: "גם צעד קטן נחשב", dueDate: dateForWeekday(5), time: "" },
       ];
     }
     if (!state.courses.length) {
       state.courses = [
-        { id: crypto.randomUUID(), name: "מבוא ל-Python", day: 0, start: "09:00", end: "10:30" },
-        { id: crypto.randomUUID(), name: "יסודות JavaScript", day: 2, start: "11:00", end: "12:30" },
-        { id: crypto.randomUUID(), name: "מסדי נתונים", day: 2, start: "13:00", end: "14:30" },
-        { id: crypto.randomUUID(), name: "פיתוח פרויקטים", day: 4, start: "10:00", end: "11:30" },
+        { id: crypto.randomUUID(), name: "שיעור ראשון", day: 0, start: "09:00", end: "10:30" },
+        { id: crypto.randomUUID(), name: "שיעור שני", day: 2, start: "11:00", end: "12:30" },
+        { id: crypto.randomUUID(), name: "תרגול", day: 2, start: "13:00", end: "14:30" },
+        { id: crypto.randomUUID(), name: "שיעור נוסף", day: 4, start: "10:00", end: "11:30" },
       ];
     }
     saveDemoState();
@@ -682,7 +697,7 @@
     $("#hero-add-task").addEventListener("click", openTaskDialog);
     elements.emptySchedule.addEventListener("click", openScheduleDialog);
     elements.emptyTasks.addEventListener("click", openTaskDialog);
-    $("#challenge-task-button").addEventListener("click", () => openTaskDialog("לתרגל range ולולאות ב-Python"));
+    $("#challenge-task-button").addEventListener("click", () => openTaskDialog("לתרגל ולחזור על נושא מהשיעור"));
     $("#reveal-challenge").addEventListener("click", (event) => {
       const answer = $("#challenge-answer");
       answer.hidden = !answer.hidden;
